@@ -20,7 +20,7 @@ rm -rf $tmp32
 mkdir $tmp32; handleError
 echo "building 32 bit..."
 make clean;
-./configure --shlibdir=$installDir --disable-static --enable-shared --disable-all --enable-avcodec --cc='gcc -m32'; handleError
+./configure --shlibdir=$installDir --disable-static --enable-shared --disable-all --enable-avcodec --enable-encoder=aac --enable-decoder=aac --cc='gcc -m32'; handleError
 make; handleError
 make install; handleError
 cp $installDir/libavcodec.58.6.102.dylib $tmp32/libavcodec.58.dylib; handleError
