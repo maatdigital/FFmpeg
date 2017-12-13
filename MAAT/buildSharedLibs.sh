@@ -1,6 +1,7 @@
 #!/bin/bash
 
-installDir=/usr/local/MAAT/lib/drm2
+endUserInstallDir=/usr/local/MAAT/lib/drm2
+buildInstallDir=MAAT/builds
 tmp32=MAAT/tmp32
 tmp64=MAAT/tmp64
 
@@ -11,7 +12,8 @@ function handleError {
   fi
 }
 
-mkdir $installDir
+rm -rf $buildInstallDir
+mkdir -p $endUserInstallDir
 
 pushd ..
 
@@ -20,32 +22,42 @@ rm -rf $tmp32
 mkdir $tmp32; handleError
 echo "building 32 bit..."
 make clean;
-./configure --shlibdir=$installDir --disable-static --enable-shared --disable-all --enable-avcodec --enable-encoder=aac --enable-decoder=aac --cc='gcc -m32'; handleError
+./configure --shlibdir=$endUserInstallDir --disable-static --enable-shared --disable-all --enable-avcodec --enable-encoder=aac --enable-decoder=aac --cc='gcc -m32'; handleError
 make; handleError
 make install; handleError
-cp $installDir/libavcodec.58.6.102.dylib $tmp32/libavcodec.58.dylib; handleError
-cp $installDir/libavutil.56.5.100.dylib $tmp32/libavutil.56.dylib; handleError
-rm -f $installDir/*.dylib; handleError
+cp $endUserInstallDir/libavcodec.58.6.102.dylib $tmp32/libavcodec.58.dylib; handleError
+cp $endUserInstallDir/libavutil.56.5.100.dylib $tmp32/libavutil.56.dylib; handleError
+rm -f $endUserInstallDir/*.dylib; handleError
 
 # # 64 bit
 echo "building 64 bit..."
 rm -rf $tmp64
 mkdir $tmp64; handleError
 make clean;
-./configure --shlibdir=$installDir --disable-static --enable-shared --disable-all --enable-avcodec --enable-encoder=aac --enable-decoder=aac; handleError
+./configure --shlibdir=$endUserInstallDir --disable-static --enable-shared --disable-all --enable-avcodec --enable-encoder=aac --enable-decoder=aac; handleError
 make; handleError
 make install; handleError
-cp $installDir/libavcodec.58.6.102.dylib $tmp64/libavcodec.58.dylib; handleError
-cp $installDir/libavutil.56.5.100.dylib $tmp64/libavutil.56.dylib; handleError
-rm -f $installDir/*.dylib; handleError
+cp $endUserInstallDir/libavcodec.58.6.102.dylib $tmp64/libavcodec.58.dylib; handleError
+cp $endUserInstallDir/libavutil.56.5.100.dylib $tmp64/libavutil.56.dylib; handleError
+rm -f $endUserInstallDir/*.dylib; handleError
+
+function fattenAndMove {
+	libName="${1}.dylib"
+	echo "fattening $libName"
+	lipo -create $tmp32/$libName $tmp64/$libName -output $endUserInstallDir/$libName; handleError	
+	mv $endUserInstallDir/$libName $buildInstallDir/$libName; handleError
+}
+
+mkdir -p $buildInstallDir
 
 # create fat binaries
-sudo lipo -create $tmp32/libavcodec.58.dylib $tmp64/libavcodec.58.dylib -output $installDir/libavcodec.58.dylib; handleError
-sudo lipo -create $tmp32/libavutil.56.dylib $tmp64/libavutil.56.dylib -output $installDir/libavutil.56.dylib; handleError
+fattenAndMove libavcodec.58
+fattenAndMove libavutil.56
 
-rm -rf $/tmp32; handleError
-rm -rf $/tmp64; handleError
+rm -rf $tmp32; handleError
+rm -rf $tmp64; handleError
+rm -rf $endUserInstallDir; handleError
 
-echo "done!"
+echo "done! Libs built at $buildInstallDir"
 
 popd
