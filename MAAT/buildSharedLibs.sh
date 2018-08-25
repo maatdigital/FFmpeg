@@ -57,8 +57,6 @@ function fattenAndMove {
 	mv $endUserInstallDir/$libName $buildInstallDir/$libName; handleError
 }
 
-read -p "p"
-
 mkdir -p $buildInstallDir
 
 # create fat binaries
