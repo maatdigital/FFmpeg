@@ -30,7 +30,6 @@
 /ffprobe
 /ffserver
 /config.asm
-/config.h
 /coverage.info
 /avversion.h
 /lcov/
